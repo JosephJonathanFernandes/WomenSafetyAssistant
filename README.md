@@ -33,7 +33,7 @@ Women Safety Assistant is a real-time SOS and risk alert platform designed to en
 
 1. **Clone the repository:**
   ```bash
-  git clone 
+  git clone https://github.com/JosephJonathanFernandes/WomenSafetyAssistant.git
   cd WomenSafetyAssistant
   ```
 2. **Create and activate a virtual environment:**
@@ -81,11 +81,11 @@ Women Safety Assistant is a real-time SOS and risk alert platform designed to en
 
 
 ## Team
--Giselle
--Pratik
--Akaash
--Ahmed
--Nihaal
+- Giselle
+- Pratik
+- Akaash
+- Ahmed
+- Nihaal
 
 
 ---
