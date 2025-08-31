@@ -93,7 +93,7 @@ Women Safety Assistant is a real-time SOS and risk alert platform designed to en
 
 ## License
 
-MIT License (or hackathon-specific license if required)
+MIT License 
 
 ---
 
