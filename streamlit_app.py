@@ -1,12 +1,16 @@
+
 """
 streamlit_app.py
 Streamlit frontend for Women Safety Assistant
+Collects user info and sends SOS to Flask backend.
 """
+
 import streamlit as st
 import requests
 
 st.title("Women Safety Assistant")
 
+# Input fields for user info
 user_name = st.text_input("Your Name")
 lat = st.text_input("Latitude")
 lng = st.text_input("Longitude")
