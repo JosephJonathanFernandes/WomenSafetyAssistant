@@ -22,7 +22,7 @@ Women Safety Assistant is a real-time SOS and risk alert platform designed to en
 
 - Frontend: Streamlit
 - Backend: Flask
-- Database: Firebase or MongoDB
+- Database: SQLite (via SQLAlchemy)
 - APIs: Google Maps, Twilio
 - AI: Scikit-learn, rule-based safety scoring
 

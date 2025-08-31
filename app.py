@@ -1,16 +1,23 @@
+
 # app.py
 
 from flask import Flask, request, jsonify
-from pymongo import MongoClient
+from flask_sqlalchemy import SQLAlchemy
 import datetime
 from twilio.rest import Client
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sos_events.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-# Connect to MongoDB (use local or Atlas)
-client = MongoClient("mongodb://localhost:27017/")
-db = client['WomenSafetyDB']
-sos_collection = db['sos_events']
+# SOS Event Model
+class SOSEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String(100), nullable=False)
+    latitude = db.Column(db.String(50), nullable=False)
+    longitude = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 @app.route('/sos', methods=['POST'])
 def sos_trigger():
@@ -20,12 +27,11 @@ def sos_trigger():
     lng = data.get('longitude')
     timestamp = datetime.datetime.now()
 
-    sos_collection.insert_one({
-        "user": user,
-        "latitude": lat,
-        "longitude": lng,
-        "timestamp": timestamp
-    })
+
+    # Store SOS event in SQLite
+    sos_event = SOSEvent(user=user, latitude=lat, longitude=lng)
+    db.session.add(sos_event)
+    db.session.commit()
 
     # Send SMS alert using Twilio
     to_number = '+11234567890'  # Replace with recipient's phone number
@@ -47,3 +53,8 @@ def send_sms_alert(to_number, message):
         from_='+1234567890',  # Replace with your Twilio phone number
         to=to_number
     )
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
