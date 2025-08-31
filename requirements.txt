@@ -2,6 +2,7 @@
 # Core web and API frameworks
 Flask
 Streamlit
+streamlit-extras
 requests
 
 +# Database
