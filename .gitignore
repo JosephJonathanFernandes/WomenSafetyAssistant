@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+venv/
+ENV/
+.env
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# MongoDB
+*.lock
+
+# Streamlit
+.streamlit/
+
+# Twilio credentials (if using .env)
+.env
+
+# Misc
+*.sqlite3
+*.db
+*.bak
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test
+coverage/
+htmlcov/
+
+# Others
+*.swp
+*.swo
