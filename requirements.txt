@@ -5,7 +5,7 @@ Streamlit
 streamlit-extras
 requests
 
-+# Database
+# Database
 SQLAlchemy
 
 # SMS/Email
@@ -16,6 +16,3 @@ googlemaps
 
 # Environment variable management
 python-dotenv
-
-# Optional: For email alerts
-smtplib

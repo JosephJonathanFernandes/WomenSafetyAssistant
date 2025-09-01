@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-purple: #6A0DAD;
+  --primary-pink: #FF69B4;
+  --primary-white: #FFFFFF;
+  --dark-bg: #1a1a1a;
+  --dark-card: #2d2d2d;
+  --dark-text: #e5e5e5;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900 transition-colors duration-200;
+  }
+  
+  body.dark {
+    @apply bg-gray-900 text-gray-100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-110 shadow-xl animate-pulse;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700;
+  }
+  
+  .hero-gradient {
+    background: linear-gradient(135deg, #6A0DAD 0%, #FF69B4 100%);
+  }
+  
+  .glow-animation {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px #FF69B4, 0 0 30px #FF69B4, 0 0 40px #FF69B4;
+    }
+    to {
+      box-shadow: 0 0 30px #FF69B4, 0 0 40px #FF69B4, 0 0 50px #FF69B4;
+    }
+  }
+}
