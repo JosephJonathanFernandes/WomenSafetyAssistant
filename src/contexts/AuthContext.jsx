@@ -17,17 +17,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     const getSession = async () => {
       try {
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          const userProfile = await getProfile(currentUser.id);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          const userProfile = await getProfile(session.user.id);
           setProfile(userProfile);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error("Error getting session:", error);
       } finally {
         setLoading(false);
       }
@@ -36,15 +35,15 @@ export const AuthProvider = ({ children }) => {
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
         if (session?.user) {
           setUser(session.user);
           try {
             const userProfile = await getProfile(session.user.id);
             setProfile(userProfile);
           } catch (error) {
-            console.error('Error getting profile:', error);
+            console.error("Error getting profile:", error);
           }
         } else {
           setUser(null);
@@ -54,8 +53,11 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
+
 
   const value = {
     user,

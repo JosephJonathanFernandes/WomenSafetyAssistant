@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://awgmeffngebhhbsltomt.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Z21lZmZuZ2ViaGhic2x0b210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTkwNTksImV4cCI6MjA3MjI5NTA1OX0.l4M-Uqa_nDWxEa4aktffNVxeiQ7ePrimXnEgL0rEb7c";
+// Using environment variables is recommended for API keys
+// The current key has a very long expiration date (year 2035) which is a security concern
+// Consider using a .env file with shorter-lived keys that are rotated regularly
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || "https://awgmeffngebhhbsltomt.supabase.co";
+const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Z21lZmZuZ2ViaGhic2x0b210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTkwNTksImV4cCI6MjA3MjI5NTA1OX0.l4M-Uqa_nDWxEa4aktffNVxeiQ7ePrimXnEgL0rEb7c";
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 

@@ -65,6 +65,11 @@ def sos_trigger():
     return jsonify({"status": "SOS sent successfully!"})
 
 # Helper function to send SMS alerts using Twilio
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def send_sms_alert(to_number, message):
     """
@@ -73,12 +78,20 @@ def send_sms_alert(to_number, message):
         to_number (str): Recipient phone number
         message (str): Message body
     """
-    account_sid = 'YOUR_TWILIO_SID'  # Replace with your Twilio Account SID
-    auth_token = 'YOUR_TWILIO_AUTH_TOKEN'  # Replace with your Twilio Auth Token
+    # Get Twilio credentials from environment variables
+    account_sid = os.environ.get('TWILIO_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    from_number = os.environ.get('TWILIO_PHONE')
+    
+    # Validate that credentials are available
+    if not all([account_sid, auth_token, from_number]):
+        raise ValueError("Missing Twilio credentials. Check your .env file.")
+        
+    # Initialize Twilio client and send message
     client = Client(account_sid, auth_token)
     client.messages.create(
         body=message,
-        from_='+1234567890',  # Replace with your Twilio phone number
+        from_=from_number,
         to=to_number
     )
 

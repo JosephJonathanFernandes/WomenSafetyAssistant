@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { signIn, signUp } from '../supabaseClient';
 
 export default function Auth() {
@@ -11,45 +10,82 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate();
+
+  // Form validation function
+  const validateForm = () => {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    // Password validation - at least 6 characters
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+
+    // Additional validation for sign up
+    if (isSignUp) {
+      if (!fullName.trim()) {
+        setError('Please enter your full name');
+        return false;
+      }
+
+      // Basic phone validation
+      const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+      if (!phoneRegex.test(phone)) {
+        setError('Please enter a valid phone number');
+        return false;
+      }
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     setSuccessMessage('');
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
+    setLoading(true);
 
     try {
       if (isSignUp) {
         await signUp(email, password, fullName, phone);
-        setSuccessMessage('Account created successfully! Please check your email for confirmation.');
-        // Clear form
+        setSuccessMessage('Registration successful! A confirmation email has been sent to your email address. Please check your inbox and sign in to continue.');
+        // Reset form fields after successful signup
         setEmail('');
         setPassword('');
         setFullName('');
         setPhone('');
-        // Navigate to home after 3 seconds
-        setTimeout(() => {
-          navigate('/');
-        }, 3000);
+        // Switch to sign in mode
+        setIsSignUp(false);
       } else {
         await signIn(email, password);
-        navigate('/');
       }
     } catch (error) {
-      setError(error.message);
+      console.error('Authentication error:', error);
+      // Provide more user-friendly error messages
+      if (error.message.includes('email')) {
+        setError('There was a problem with your email. Please check and try again.');
+      } else if (error.message.includes('password')) {
+        setError('There was a problem with your password. Please check and try again.');
+      } else if (error.message.includes('network')) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        setError(error.message || 'An unexpected error occurred. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  // Check if user already exists and redirect to signin
-  useEffect(() => {
-    if (isSignUp && email && !fullName && !phone) {
-      // This suggests user might be trying to sign up with existing email
-      // We'll handle this in the error message instead
-    }
-  }, [isSignUp, email, fullName, phone]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -72,7 +108,7 @@ export default function Auth() {
               {error}
             </div>
           )}
-
+          
           {successMessage && (
             <div className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded-lg text-sm">
               {successMessage}
@@ -164,15 +200,7 @@ export default function Auth() {
           <div className="text-center">
             <button
               type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setSuccessMessage('');
-                setEmail('');
-                setPassword('');
-                setFullName('');
-                setPhone('');
-              }}
+              onClick={() => setIsSignUp(!isSignUp)}
               className="text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 text-sm"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

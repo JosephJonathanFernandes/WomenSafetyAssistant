@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Auth from "./components/Auth";
 import Navbar from "./components/Navbar";
@@ -32,31 +32,32 @@ function AppContent() {
   }
 
   return (
-    <Router>
-      <div className="flex flex-col h-screen">
-        <Navbar />
-        <div className="flex flex-1">
-          <Sidebar />
-          <div className="flex-1 bg-white dark:bg-gray-900 overflow-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/panic" element={<PanicButton />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/routes" element={<SafeRoutes />} />
-              <Route path="/tips" element={<SafetyTips />} />
-              <Route path="/profile" element={<Profile />} />
-            </Routes>
-          </div>
+    <div className="flex flex-col h-screen">
+      <Navbar />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-auto">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/panic" element={<PanicButton />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/routes" element={<SafeRoutes />} />
+            <Route path="/tips" element={<SafetyTips />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </div>
-    </Router>
+    </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 }
