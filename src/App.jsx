@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Auth from "./components/Auth";
 import Navbar from "./components/Navbar";
@@ -10,21 +10,14 @@ import Contacts from "./pages/Contacts";
 import SafeRoutes from "./pages/SafeRoutes";
 import SafetyTips from "./pages/SafetyTips";
 import Profile from "./pages/Profile";
+import LoadingSpinner from "./components/LoadingSpinner";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-white text-2xl">🛡️</span>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!user) {
@@ -34,9 +27,9 @@ function AppContent() {
   return (
     <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
         <Sidebar />
-        <div className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-auto">
+        <div className="flex-1 bg-white p-6 overflow-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/panic" element={<PanicButton />} />
@@ -44,7 +37,6 @@ function AppContent() {
             <Route path="/routes" element={<SafeRoutes />} />
             <Route path="/tips" element={<SafetyTips />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>
@@ -54,10 +46,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
+    <ErrorBoundary>
       <AuthProvider>
-        <AppContent />
+        <Router>
+          <AppContent />
+        </Router>
       </AuthProvider>
-    </Router>
+    </ErrorBoundary>
   );
 }

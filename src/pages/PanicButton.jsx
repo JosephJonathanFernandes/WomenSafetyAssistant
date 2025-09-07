@@ -10,48 +10,72 @@ export default function PanicButton() {
   const [message, setMessage] = useState("");
 
   const handleSOS = async () => {
-    if (!user) {
-      setMessage("Please log in to send SOS alerts");
-      return;
-    }
+  if (!user) {
+    setMessage("Please log in to send SOS alerts");
+    return;
+  }
 
-    setLoading(true);
-    try {
-      // Get current location
-      let location = null;
-      if (navigator.geolocation) {
+  setLoading(true);
+  try {
+    // Get current location
+    let location = null;
+    if (navigator.geolocation) {
+      try {
         const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 10000,
+            enableHighAccuracy: true
+          });
         });
         location = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         };
+      } catch (error) {
+        console.warn("Geolocation failed:", error);
+        // Continue without location
       }
+    }
 
-      // Create SOS alert in Supabase
-      const alert = {
-        user_id: user.id,
-        location: location,
-        status: "sent",
-        method: "button_press"
-      };
+    // Prepare SOS data
+    const sosData = {
+      user_id: user.id,
+      method: "button_press",
+    };
 
-      await createSOSAlert(alert);
+    // Only add location if we have it
+    if (location) {
+      sosData.latitude = location.lat;
+      sosData.longitude = location.lng;
+    }
+
+    // Call backend API
+    const response = await fetch("http://localhost:3001/api/sos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sosData),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
       setIsAlertSent(true);
       setMessage("SOS alert sent successfully! Emergency contacts have been notified.");
-      
-      // Reset after 10 seconds
-      setTimeout(() => {
-        setIsAlertSent(false);
-        setMessage("");
-      }, 10000);
-    } catch (error) {
-      setMessage(`Error sending SOS: ${error.message}`);
-    } finally {
-      setLoading(false);
+    } else {
+      setMessage(`Error: ${data.error}`);
     }
-  };
+
+    // Reset after 10 seconds
+    setTimeout(() => {
+      setIsAlertSent(false);
+      setMessage("");
+    }, 10000);
+  } catch (error) {
+    setMessage(`Error sending SOS: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleShareLocation = () => {
     setIsSharingLocation(true);

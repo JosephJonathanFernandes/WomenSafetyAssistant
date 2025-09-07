@@ -22,8 +22,20 @@ export const AuthProvider = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(session.user);
-          const userProfile = await getProfile(session.user.id);
-          setProfile(userProfile);
+          try {
+            const userProfile = await getProfile(session.user.id);
+            setProfile(userProfile);
+          } catch (profileError) {
+            console.warn("Profile not found, using user data:", profileError);
+            // Create a basic profile from user data if profile table doesn't exist
+            setProfile({
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              email: session.user.email,
+              phone: session.user.user_metadata?.phone || '',
+              created_at: session.user.created_at
+            });
+          }
         }
       } catch (error) {
         console.error("Error getting session:", error);
@@ -42,8 +54,16 @@ export const AuthProvider = ({ children }) => {
           try {
             const userProfile = await getProfile(session.user.id);
             setProfile(userProfile);
-          } catch (error) {
-            console.error("Error getting profile:", error);
+          } catch (profileError) {
+            console.warn("Profile not found, using user data:", profileError);
+            // Create a basic profile from user data if profile table doesn't exist
+            setProfile({
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              email: session.user.email,
+              phone: session.user.user_metadata?.phone || '',
+              created_at: session.user.created_at
+            });
           }
         } else {
           setUser(null);

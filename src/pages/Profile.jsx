@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { updateProfile } from "../supabaseClient";
+import { updateProfile, signOut } from "../supabaseClient";
 
 export default function Profile() {
   const { profile, setProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     full_name: "",
-    phone: ""
+    phone: "",
+    gender: "",
+    email: ""
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -16,7 +18,9 @@ export default function Profile() {
     if (profile) {
       setEditForm({
         full_name: profile.full_name || "",
-        phone: profile.phone || ""
+        phone: profile.phone || "",
+        gender: profile.gender || "",
+        email: profile.email || ""
       });
     }
   }, [profile]);
@@ -45,10 +49,26 @@ export default function Profile() {
   const handleCancel = () => {
     setEditForm({
       full_name: profile?.full_name || "",
-      phone: profile?.phone || ""
+      phone: profile?.phone || "",
+      gender: profile?.gender || "",
+      email: profile?.email || ""
     });
     setIsEditing(false);
     setMessage("");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      setMessage(`Error signing out: ${error.message}`);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      setMessage("Account deletion not implemented yet. Please contact support.");
+    }
   };
 
   if (!profile) {
@@ -131,6 +151,33 @@ export default function Profile() {
                       className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Gender
+                    </label>
+                    <select
+                      value={editForm.gender}
+                      onChange={(e) => setEditForm({...editForm, gender: e.target.value})}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="female">Female</option>
+                      <option value="male">Male</option>
+                      <option value="other">Other</option>
+                      <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
                   <div className="flex space-x-3 pt-2">
                     <button 
                       onClick={handleSave} 
@@ -156,6 +203,18 @@ export default function Profile() {
                     <span className="text-gray-600 dark:text-gray-400">Phone:</span>
                     <span className="text-gray-800 dark:text-gray-200 font-medium">
                       {profile.phone || "Not set"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Gender:</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {profile.gender || "Not set"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {profile.email || "Not set"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -185,7 +244,13 @@ export default function Profile() {
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Email:</span>
                   <span className="text-gray-800 dark:text-gray-200 font-medium">
-                    {profile.id ? "Verified" : "Not verified"}
+                    {profile.email || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                  <span className="text-green-600 dark:text-green-400 font-medium">
+                    Active
                   </span>
                 </div>
               </div>
@@ -197,13 +262,28 @@ export default function Profile() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <button className="w-full text-left p-3 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200">
+                <button 
+                  onClick={() => setMessage("Password change not implemented yet. Please contact support.")}
+                  className="w-full text-left p-3 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
+                >
                   🔐 Change Password
                 </button>
-                <button className="w-full text-left p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200">
+                <button 
+                  onClick={() => setMessage("Two-factor authentication not implemented yet.")}
+                  className="w-full text-left p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200"
+                >
                   📱 Two-Factor Authentication
                 </button>
-                <button className="w-full text-left p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full text-left p-3 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors duration-200"
+                >
+                  🚪 Sign Out
+                </button>
+                <button 
+                  onClick={handleDeleteAccount}
+                  className="w-full text-left p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200"
+                >
                   🗑️ Delete Account
                 </button>
               </div>

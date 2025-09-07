@@ -1,12 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Using environment variables is recommended for API keys
-// The current key has a very long expiration date (year 2035) which is a security concern
-// Consider using a .env file with shorter-lived keys that are rotated regularly
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || "https://awgmeffngebhhbsltomt.supabase.co";
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Z21lZmZuZ2ViaGhic2x0b210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTkwNTksImV4cCI6MjA3MjI5NTA1OX0.l4M-Uqa_nDWxEa4aktffNVxeiQ7ePrimXnEgL0rEb7c";
+const supabaseUrl = "https://awgmeffngebhhbsltomt.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Z21lZmZuZ2ViaGhic2x0b210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTkwNTksImV4cCI6MjA3MjI5NTA1OX0.l4M-Uqa_nDWxEa4aktffNVxeiQ7ePrimXnEgL0rEb7c";
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'women-safety-app'
+    }
+  }
+});
 
 // Auth helper functions
 export const signUp = async (email, password, fullName, phone) => {
@@ -64,18 +72,14 @@ export const signUp = async (email, password, fullName, phone) => {
   }
 };
 
+// Auth helper functions
 export const signIn = async (email, password) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
+  
   if (error) throw error;
-  
-  // Ensure profile exists
-  if (data.user) {
-    await ensureProfileExists(data.user);
-  }
-  
   return data;
 };
 
@@ -90,12 +94,20 @@ export const getCurrentUser = async () => {
   return user;
 };
 
+// Profile functions
 export const getProfile = async (userId) => {
-  const { data, error } = await supabase
+  // Add timeout to prevent hanging
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+  );
+  
+  const profilePromise = supabase
     .from('profiles')
     .select('*')
     .eq('id', userId)
     .single();
+  
+  const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
   
   if (error) throw error;
   return data;
@@ -113,38 +125,7 @@ export const updateProfile = async (userId, updates) => {
   return data;
 };
 
-// Helper function to ensure profile exists
-export const ensureProfileExists = async (user) => {
-  try {
-    // Check if profile exists
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single();
-    
-    if (fetchError && fetchError.code === 'PGRST116') {
-      // Profile doesn't exist, create it
-      const { error: createError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || '',
-            phone: user.user_metadata?.phone || ''
-          }
-        ]);
-      
-      if (createError) {
-        console.warn('Failed to create profile:', createError);
-      }
-    }
-  } catch (error) {
-    console.warn('Error ensuring profile exists:', error);
-  }
-};
-
-// Trusted contacts functions
+// Trusted Contacts functions
 export const getTrustedContacts = async (userId) => {
   const { data, error } = await supabase
     .from('trusted_contacts')
@@ -153,7 +134,7 @@ export const getTrustedContacts = async (userId) => {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 export const addTrustedContact = async (contact) => {
@@ -167,11 +148,11 @@ export const addTrustedContact = async (contact) => {
   return data;
 };
 
-export const updateTrustedContact = async (id, updates) => {
+export const updateTrustedContact = async (contactId, updates) => {
   const { data, error } = await supabase
     .from('trusted_contacts')
     .update(updates)
-    .eq('id', id)
+    .eq('id', contactId)
     .select()
     .single();
   
@@ -179,56 +160,33 @@ export const updateTrustedContact = async (id, updates) => {
   return data;
 };
 
-export const deleteTrustedContact = async (id) => {
+export const deleteTrustedContact = async (contactId) => {
   const { error } = await supabase
     .from('trusted_contacts')
     .delete()
-    .eq('id', id);
+    .eq('id', contactId);
   
   if (error) throw error;
 };
 
-// SOS alerts functions
+// SOS Alerts functions
+export const getSOSAlerts = async (userId) => {
+  const { data, error } = await supabase
+    .from('sos_alerts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+};
+
 export const createSOSAlert = async (alert) => {
   const { data, error } = await supabase
     .from('sos_alerts')
     .insert([alert])
     .select()
     .single();
-  
-  if (error) throw error;
-  return data;
-};
-
-export const getSOSAlerts = async (userId) => {
-  const { data, error } = await supabase
-    .from('sos_alerts')
-    .select('*')
-    .eq('user_id', userId)
-    .order('timestamp', { ascending: false });
-  
-  if (error) throw error;
-  return data;
-};
-
-// Safety reports functions
-export const createSafetyReport = async (report) => {
-  const { data, error } = await supabase
-    .from('safety_reports')
-    .insert([report])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
-};
-
-export const getSafetyReports = async (userId) => {
-  const { data, error } = await supabase
-    .from('safety_reports')
-    .select('*')
-    .eq('user_id', userId)
-    .order('timestamp', { ascending: false });
   
   if (error) throw error;
   return data;
