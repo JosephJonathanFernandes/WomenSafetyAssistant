@@ -14,6 +14,7 @@ export default function Sidebar() {
     { path: "/panic", icon: "🚨", label: "SOS Alert" },
     { path: "/contacts", icon: "👥", label: "Contacts" },
     { path: "/routes", icon: "🗺️", label: "Safe Routes" },
+    { path: "/insights", icon: "📊", label: "Insights" },
     { path: "/tips", icon: "💡", label: "Safety Tips" },
     { path: "/profile", icon: "👤", label: "Profile" }
   ];

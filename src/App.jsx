@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import PanicButton from "./pages/PanicButton";
 import Contacts from "./pages/Contacts";
 import SafeRoutes from "./pages/SafeRoutes";
+import Insights from "./pages/Insights";
 import SafetyTips from "./pages/SafetyTips";
 import Profile from "./pages/Profile";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -35,6 +36,7 @@ function AppContent() {
             <Route path="/panic" element={<PanicButton />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/routes" element={<SafeRoutes />} />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/tips" element={<SafetyTips />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>

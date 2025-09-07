@@ -4,13 +4,20 @@ import { signOut } from "../supabaseClient";
 
 export default function Navbar() {
   const { user, profile } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark') return true;
+    if (stored === 'light') return false;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);
 
