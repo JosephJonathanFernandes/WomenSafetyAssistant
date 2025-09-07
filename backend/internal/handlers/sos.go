@@ -10,6 +10,7 @@ import (
 	"github.com/supabase-community/postgrest-go"
 	"women-safety-backend/internal/db"
 	"women-safety-backend/internal/models"
+	"women-safety-backend/internal/services"
 )
 
 // CreateSOS handles SOS alert creation
@@ -168,11 +169,12 @@ func notifyContacts(contacts []models.TrustedContact, sos models.SOSAlert) {
 				}
 				
 				// Update notification record with status
+				updateData := map[string]interface{}{
+					"status": status,
+					"external_id": sid,
+				}
 				_, _, err = db.Client.From("notifications").
-					Update(map[string]interface{}{
-						"status": status,
-						"external_id": sid,
-					}).
+					Update(updateData, "id", "eq").
 					Eq("id", notificationID).
 					Execute()
 				if err != nil {

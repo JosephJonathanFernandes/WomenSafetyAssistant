@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { createSOSAlert } from "../supabaseClient";
+import MapComponent from "../components/MapComponent";
 
 export default function PanicButton() {
   const { user } = useAuth();
@@ -8,6 +9,25 @@ export default function PanicButton() {
   const [isSharingLocation, setIsSharingLocation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [location, setLocation] = useState(null);
+  
+  // Get user's current location when component mounts
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   const handleSOS = async () => {
   if (!user) {
@@ -17,9 +37,9 @@ export default function PanicButton() {
 
   setLoading(true);
   try {
-    // Get current location
-    let location = null;
-    if (navigator.geolocation) {
+    // Use the location state if available, otherwise try to get it again
+    let currentLocation = location;
+    if (!currentLocation && navigator.geolocation) {
       try {
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -27,10 +47,11 @@ export default function PanicButton() {
             enableHighAccuracy: true
           });
         });
-        location = {
+        currentLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
+        setLocation(currentLocation); // Update state with new location
       } catch (error) {
         console.warn("Geolocation failed:", error);
         // Continue without location
@@ -44,9 +65,9 @@ export default function PanicButton() {
     };
 
     // Only add location if we have it
-    if (location) {
-      sosData.latitude = location.lat;
-      sosData.longitude = location.lng;
+    if (currentLocation) {
+      sosData.latitude = currentLocation.lat;
+      sosData.longitude = currentLocation.lng;
     }
 
     // Call backend API
@@ -85,6 +106,25 @@ export default function PanicButton() {
       setIsSharingLocation(false);
       setMessage("");
     }, 3000);
+  };
+
+  // Add map section to the UI
+  const renderMap = () => {
+    if (!location) return null;
+    
+    return (
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Your Current Location</h2>
+        <MapComponent 
+          latitude={location.lat} 
+          longitude={location.lng} 
+          height="300px" 
+        />
+        <p className="mt-2 text-sm text-gray-600">
+          This map shows your current location that will be shared during an emergency.
+        </p>
+      </div>
+    );
   };
 
   const quickActions = [
@@ -151,6 +191,9 @@ export default function PanicButton() {
             </div>
           )}
         </div>
+        
+        {/* Render map component */}
+        {renderMap()}
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">

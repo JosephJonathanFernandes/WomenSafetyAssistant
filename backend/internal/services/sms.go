@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/twilio/twilio-go"
-	"github.com/twilio/twilio-go/rest/api/v2010"
+	api "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 // TwilioClient is the client for Twilio SMS service
@@ -45,7 +45,7 @@ func SendSMS(to, message string) (string, error) {
 	}
 
 	// Create the message parameters
-	params := &v2010.CreateMessageParams{}
+	params := &api.CreateMessageParams{}
 	params.SetTo(to)
 	params.SetFrom(fromNumber)
 	params.SetBody(message)
