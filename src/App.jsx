@@ -12,6 +12,7 @@ import SafetyTips from "./pages/SafetyTips";
 import Profile from "./pages/Profile";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
+import Insights from "./pages/Insights";
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -37,6 +38,7 @@ function AppContent() {
             <Route path="/routes" element={<SafeRoutes />} />
             <Route path="/tips" element={<SafetyTips />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/insights" element={<Insights />} />
           </Routes>
         </div>
       </div>
