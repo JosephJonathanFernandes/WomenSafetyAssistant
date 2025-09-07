@@ -50,8 +50,24 @@ func CreateSOS(c *fiber.Ctx) error {
 
 	// Insert into Supabase
 	log.Printf("Inserting SOS alert: %+v", sos)
+	
+	// Create a map with only the fields that exist in the database
+	sosMap := map[string]interface{}{
+		"user_id": sos.UserID,
+		"status": sos.Status,
+		"method": sos.Method,
+		"latitude": sos.Latitude,
+		"longitude": sos.Longitude,
+		"timestamp": sos.Timestamp,
+	}
+	
+	// Only include ID if it's not empty
+	if sos.ID != "" {
+		sosMap["id"] = sos.ID
+	}
+	
 	_, _, err := db.Client.From("sos_alerts").
-		Insert(sos, false, "", "representation", "").
+		Insert(sosMap, false, "", "representation", "").
 		Execute()
 	if err != nil {
 		log.Printf("Error inserting SOS alert: %v", err)
@@ -108,21 +124,61 @@ func getTrustedContacts(userID string) ([]models.TrustedContact, error) {
 	return contacts, err
 }
 
-// notifyContacts simulates notifying trusted contacts and creates notification records
+// notifyContacts sends notifications to trusted contacts and creates notification records
 func notifyContacts(contacts []models.TrustedContact, sos models.SOSAlert) {
 	log.Printf("🚨 SOS Alert for user %s at location %f, %f", sos.UserID, sos.Latitude, sos.Longitude)
+	
+	// Get user profile to include name in alerts
+	var profile models.Profile
+	_, err := db.Client.
+		From("profiles").
+		Select("*", "", false).
+		Eq("id", sos.UserID).
+		Single().
+		ExecuteTo(&profile)
+	
+	userName := "Someone"
+	if err == nil && profile.FullName != "" {
+		userName = profile.FullName
+	}
 	
 	for _, contact := range contacts {
 		log.Printf("📱 Notifying contact: %s (%s) - %s", contact.Name, contact.Phone, contact.Email)
 		
-		// Create notification record for each contact
+		// Create notification record
 		notification := models.Notification{
 			ID:        uuid.New().String(),
-			UserID:    contact.UserID, // The user who owns the contact
+			UserID:    contact.UserID,
 			SOSID:     sos.ID,
-			Channel:   "SMS", // Default to SMS, could be determined by contact preferences
-			Status:    "sent", // In real implementation, this would be updated based on delivery status
+			Channel:   "SMS",
+			Status:    "pending",
 			CreatedAt: time.Now().Format(time.RFC3339),
+		}
+		
+		// Send SMS via Twilio if phone number is available
+		if contact.Phone != "" {
+			go func(phone string, notificationID string) {
+				sid, err := services.SendSOSAlert(userName, phone, sos.Latitude, sos.Longitude, sos.Timestamp)
+				
+				// Update notification status based on delivery result
+				status := "sent"
+				if err != nil {
+					log.Printf("Error sending SMS: %v", err)
+					status = "failed"
+				}
+				
+				// Update notification record with status
+				_, _, err = db.Client.From("notifications").
+					Update(map[string]interface{}{
+						"status": status,
+						"external_id": sid,
+					}).
+					Eq("id", notificationID).
+					Execute()
+				if err != nil {
+					log.Printf("Error updating notification status: %v", err)
+				}
+			}(contact.Phone, notification.ID)
 		}
 		
 		// Insert notification record
@@ -133,12 +189,10 @@ func notifyContacts(contacts []models.TrustedContact, sos models.SOSAlert) {
 			log.Printf("Error creating notification record: %v", err)
 		}
 		
-		// In a real implementation, you would:
-		// 1. Send SMS via Twilio
-		// 2. Send email via SendGrid
-		// 3. Send push notification via FCM
-		// 4. Make phone call via Twilio Voice
-		// 5. Update notification status based on delivery result
+		// TODO: Future enhancements
+		// 1. Send email via SendGrid if email is available
+		// 2. Send push notification via FCM
+		// 3. Make phone call via Twilio Voice for critical alerts
 	}
 }
 

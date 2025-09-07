@@ -6,7 +6,7 @@ import "encoding/json"
 type SOSAlert struct {
     ID        string          `json:"id,omitempty"`
     UserID    string          `json:"user_id"`
-    Location  json.RawMessage `json:"location,omitempty"` // JSONB field
+    Location  json.RawMessage `json:"location"` // JSONB field - removed omitempty
     Timestamp string          `json:"timestamp,omitempty"`
     Status    string          `json:"status"`
     Method    string          `json:"method"`
