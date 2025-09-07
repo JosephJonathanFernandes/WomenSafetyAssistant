@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { queryWolframAlpha, getSimpleImageUrl, extractPrimaryResults } from "../services/wolfram";
 
 export default function Insights() {
@@ -39,6 +39,13 @@ export default function Insights() {
 
   const { primaryPod, interpretations, pods } = extractPrimaryResults(result);
 
+  const hasRun = useRef(false);
+  useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+    handleSearch();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -78,11 +85,12 @@ export default function Insights() {
             <div className="card min-h-[240px] flex items-center justify-center">
               {loading ? (
                 <div className="text-gray-600 dark:text-gray-300">Loading...</div>
+              ) : primaryPod?.subpods?.[0]?.img?.src ? (
+                <img src={primaryPod.subpods[0].img.src} alt={primaryPod.subpods[0].title || "Primary visualization"} className="max-h-[420px] w-full object-contain" />
               ) : simpleImgUrl ? (
-                // Simple, high-contrast image directly from Wolfram for quick visualization
                 <img src={simpleImgUrl} alt="Wolfram Visualization" className="max-h-[420px] w-full object-contain" />
               ) : (
-                <div className="text-gray-600 dark:text-gray-300">Set the Wolfram App ID to enable visualizations.</div>
+                <div className="text-gray-600 dark:text-gray-300">No visualization available for this query.</div>
               )}
             </div>
 

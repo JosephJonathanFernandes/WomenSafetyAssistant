@@ -9,6 +9,7 @@ import (
 
 var SupabaseURL string
 var SupabaseKey string
+var WolframAppID string
 
 func LoadConfig() {
 	err := godotenv.Load()
@@ -17,4 +18,5 @@ func LoadConfig() {
 	}
 	SupabaseURL = os.Getenv("SUPABASE_URL")
 	SupabaseKey = os.Getenv("SUPABASE_KEY")
+	WolframAppID = os.Getenv("WOLFRAM_APP_ID")
 }
